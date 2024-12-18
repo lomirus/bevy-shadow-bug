@@ -1,4 +1,4 @@
-use bevy::{core_pipeline::bloom::BloomSettings, input::mouse::MouseMotion, prelude::*};
+use bevy::{core_pipeline::bloom::Bloom, input::mouse::MouseMotion, prelude::*};
 
 use crate::{
     pause_menu::PauseMenuUI,
@@ -23,15 +23,15 @@ pub(crate) fn setup_camera(mut commands: Commands) {
     commands.spawn(CameraSettings {
         camera_view: CameraView::ThirdPerson,
     });
-    commands.spawn(Camera3dBundle {
-        camera: Camera {
+    commands.spawn((
+        Camera3d::default(),
+        Camera {
             hdr: true,
             ..default()
         },
-        transform: Transform::from_xyz(0.0, 0.5, 5.0).looking_at(Vec3::new(0.0, 0.0, 1.0), Vec3::Y),
-        ..default()
-    });
-    commands.spawn(BloomSettings::default());
+        Transform::from_xyz(0.0, 0.5, 5.0).looking_at(Vec3::new(0.0, 0.0, 1.0), Vec3::Y),
+    ));
+    commands.spawn(Bloom::default());
 }
 
 pub(crate) fn update_camera(
@@ -47,8 +47,7 @@ pub(crate) fn update_camera(
 
     let mut camera = camera.iter_mut().next().unwrap();
     let player = player.iter().next().unwrap();
-
-    for motion in mouse_motion.iter() {
+    for motion in mouse_motion.read() {
         camera.rotate_y(-CAMERA_MOTION_SPEED * motion.delta.x);
 
         // Before expand:
@@ -71,7 +70,7 @@ pub(crate) fn update_camera(
     match camera_settings.iter().next().unwrap().camera_view {
         CameraView::FirstPerson => {
             camera.translation.x = player.coord.x;
-            camera.translation.y = player.coord.y + PLAYER_HEIGHT *1.2;
+            camera.translation.y = player.coord.y + PLAYER_HEIGHT * 1.2;
             camera.translation.z = player.coord.z;
         }
         CameraView::ThirdPerson => {
@@ -83,9 +82,9 @@ pub(crate) fn update_camera(
 
 pub(crate) fn handle_change_view(
     mut camera_settings: Query<&mut CameraSettings>,
-    keyborad_input: Res<Input<KeyCode>>,
+    keyborad_input: Res<ButtonInput<KeyCode>>,
 ) {
-    if keyborad_input.just_pressed(KeyCode::V) {
+    if keyborad_input.just_pressed(KeyCode::KeyV) {
         let mut camera_settings = camera_settings.iter_mut().next().unwrap();
         camera_settings.camera_view = match camera_settings.camera_view {
             CameraView::FirstPerson => CameraView::ThirdPerson,

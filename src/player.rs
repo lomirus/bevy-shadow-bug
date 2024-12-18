@@ -1,15 +1,12 @@
 use bevy::prelude::*;
-use bevy_inspector_egui::prelude::*;
 
 use crate::pause_menu::PauseMenuUI;
 
 pub(crate) const PLAYER_HEIGHT: f32 = 64.0;
 const PLAYER_MOVE_SPEED: f32 = 0.1;
 
-#[derive(Component, Reflect, InspectorOptions)]
-#[reflect(InspectorOptions)]
+#[derive(Component, Reflect)]
 pub(crate) struct Player {
-    #[inspector()]
     pub(crate) coord: Vec3,
 }
 
@@ -18,10 +15,7 @@ pub(crate) fn setup_player(mut commands: Commands, asset_server: Res<AssetServer
         Player {
             coord: Vec3::new(0.0, 0.0, 0.0),
         },
-        SceneBundle {
-            scene: asset_server.load("player.glb#Scene0"),
-            ..default()
-        },
+        SceneRoot(asset_server.load("player.glb#Scene0")),
     ));
 }
 
@@ -29,7 +23,7 @@ pub(crate) fn handle_player_move(
     mut player: Query<&mut Player>,
     game_paused: Query<&PauseMenuUI>,
     camera: Query<&Transform, With<Camera3d>>,
-    keyboard_input: Res<Input<KeyCode>>,
+    keyboard_input: Res<ButtonInput<KeyCode>>,
 ) {
     if !game_paused.is_empty() {
         return;
@@ -38,34 +32,34 @@ pub(crate) fn handle_player_move(
     let mut player = player.iter_mut().next().unwrap();
     let camera = camera.iter().next().unwrap();
 
-    if keyboard_input.pressed(KeyCode::W) || keyboard_input.pressed(KeyCode::S) {
+    if keyboard_input.pressed(KeyCode::KeyW) || keyboard_input.pressed(KeyCode::KeyS) {
         let forward = camera.forward();
         let forward = Vec2::new(forward.x, forward.z).normalize();
 
-        if keyboard_input.pressed(KeyCode::W) {
+        if keyboard_input.pressed(KeyCode::KeyW) {
             player.coord.x += forward.x * PLAYER_MOVE_SPEED;
             player.coord.z += forward.y * PLAYER_MOVE_SPEED;
         }
-        if keyboard_input.pressed(KeyCode::S) {
+        if keyboard_input.pressed(KeyCode::KeyS) {
             player.coord.x -= forward.x * PLAYER_MOVE_SPEED;
             player.coord.z -= forward.y * PLAYER_MOVE_SPEED;
         }
     }
 
-    if keyboard_input.pressed(KeyCode::A) || keyboard_input.pressed(KeyCode::D) {
+    if keyboard_input.pressed(KeyCode::KeyA) || keyboard_input.pressed(KeyCode::KeyD) {
         let left = camera.left();
 
-        if keyboard_input.pressed(KeyCode::A) {
+        if keyboard_input.pressed(KeyCode::KeyA) {
             player.coord.x += left.x * PLAYER_MOVE_SPEED;
             player.coord.z += left.z * PLAYER_MOVE_SPEED;
         }
-        if keyboard_input.pressed(KeyCode::D) {
+        if keyboard_input.pressed(KeyCode::KeyD) {
             player.coord.x -= left.x * PLAYER_MOVE_SPEED;
             player.coord.z -= left.z * PLAYER_MOVE_SPEED;
         }
     }
 
-    if keyboard_input.pressed(KeyCode::LControl) {
+    if keyboard_input.pressed(KeyCode::ControlLeft) {
         player.coord.y -= PLAYER_MOVE_SPEED;
     }
     if keyboard_input.pressed(KeyCode::Space) {
@@ -75,9 +69,5 @@ pub(crate) fn handle_player_move(
 
 pub(crate) fn update_player_model(mut player: Query<(&Player, &mut Transform)>) {
     let (player, mut transform) = player.iter_mut().next().unwrap();
-    transform.translation = Vec3::new(
-        player.coord.x,
-        player.coord.y ,
-        player.coord.z,
-    );
+    transform.translation = Vec3::new(player.coord.x, player.coord.y, player.coord.z);
 }
