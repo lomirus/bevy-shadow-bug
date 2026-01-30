@@ -13,7 +13,7 @@ pub(crate) fn handle_pause_menu(
     mut window: Query<&mut Window, With<PrimaryWindow>>,
 ) {
     if keyborad_input.just_pressed(KeyCode::Escape) {
-        let mut window = window.get_single_mut().unwrap();
+        let mut window = window.single_mut().unwrap();
         if pause_menu.is_empty() {
             commands.spawn((
                 BackgroundColor(Color::srgba(0.0, 0.0, 0.0, 0.5)),

@@ -1,5 +1,3 @@
-#![windows_subsystem = "windows"]
-
 mod camera;
 mod pause_menu;
 mod player;
@@ -7,6 +5,7 @@ mod player;
 use std::f32::consts::FRAC_PI_4;
 
 use bevy::{
+    pbr::CascadeShadowConfigBuilder,
     prelude::*,
     window::{CursorGrabMode, PrimaryWindow},
 };
@@ -21,7 +20,7 @@ fn setup(
     mut window: Query<&mut Window, With<PrimaryWindow>>,
     asset_server: Res<AssetServer>,
 ) {
-    let mut window = window.get_single_mut().unwrap();
+    let mut window = window.single_mut().unwrap();
     window.cursor_options.visible = false;
     window.cursor_options.grab_mode = CursorGrabMode::Locked;
 
@@ -35,9 +34,17 @@ fn setup(
         DirectionalLight {
             color: Color::srgb(1.0, 1.0, 1.0),
             shadows_enabled: true,
-            illuminance: 20000.0,
+            illuminance: light_consts::lux::FULL_DAYLIGHT,
             ..default()
         },
+        CascadeShadowConfigBuilder {
+            num_cascades: 4,
+            minimum_distance: 0.1,
+            maximum_distance: 1000.0,
+            first_cascade_far_bound: 5.0,
+            overlap_proportion: 0.2,
+        }
+        .build(),
         Transform::from_rotation(Quat::from_euler(
             EulerRot::XYZ,
             -FRAC_PI_4,
